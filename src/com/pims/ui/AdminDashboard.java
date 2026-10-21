@@ -16,7 +16,7 @@ public class AdminDashboard extends JFrame {
         this.adminName = adminName;
 
         setTitle("PIMS - Admin Dashboard | User: " + adminName);
-        setSize(900, 600);
+        setSize(950, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -24,6 +24,7 @@ public class AdminDashboard extends JFrame {
         tabbedPane.addTab("Manage Medicines", createMedicinesPanel());
         tabbedPane.addTab("Manage Suppliers", createSuppliersPanel());
         tabbedPane.addTab("Manage Users", createUsersPanel());
+        tabbedPane.addTab("Sales Reports", createSalesReportPanel());
 
         add(tabbedPane);
     }
@@ -103,6 +104,51 @@ public class AdminDashboard extends JFrame {
             e.printStackTrace();
         }
 
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+        return panel;
+    }
+
+    protected JPanel createSalesReportPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        DefaultTableModel model = new DefaultTableModel(
+            new String[]{"Sale ID", "Date/Time", "Total Amount (R)", "Cashier Name"}, 0);
+        JTable table = new JTable(model);
+
+        JLabel lblRevenue = new JLabel("Total Revenue: R 0.00  ");
+        lblRevenue.setFont(new Font("Arial", Font.BOLD, 14));
+
+        Runnable loadSales = () -> {
+            model.setRowCount(0);
+            double revenue = 0.0;
+            String sql = "SELECT s.sale_id, s.sale_date, s.total_amount, u.full_name " +
+                         "FROM sales s LEFT JOIN users u ON s.user_id = u.user_id " +
+                         "ORDER BY s.sale_date DESC";
+            try (Connection conn = DatabaseConnection.getConnection();
+                 Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    double amt = rs.getDouble("total_amount");
+                    revenue += amt;
+                    model.addRow(new Object[]{
+                        rs.getInt("sale_id"), rs.getTimestamp("sale_date"),
+                        String.format("%.2f", amt), rs.getString("full_name")
+                    });
+                }
+                lblRevenue.setText(String.format("Total Revenue Generated: R %.2f  ", revenue));
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        };
+
+        loadSales.run();
+
+        JPanel topBar = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnRefresh = new JButton("Refresh Sales");
+        btnRefresh.addActionListener(e -> loadSales.run());
+        topBar.add(lblRevenue);
+        topBar.add(btnRefresh);
+
+        panel.add(topBar, BorderLayout.NORTH);
         panel.add(new JScrollPane(table), BorderLayout.CENTER);
         return panel;
     }
