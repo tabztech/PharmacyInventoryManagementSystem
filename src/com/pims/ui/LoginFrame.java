@@ -58,10 +58,8 @@ public class LoginFrame extends JFrame {
                 this.dispose();
 
                 if ("Admin".equalsIgnoreCase(role)) {
-                    // We will create AdminDashboard in the next step
-                    JOptionPane.showMessageDialog(this, "Admin Dashboard placeholder. Moving to next commit.");
-                } else {
-                    // We will create CashierDashboard later
+                    new AdminDashboard(userId, fullName).setVisible(true);
+                } else {  
                     JOptionPane.showMessageDialog(this, "Cashier Dashboard placeholder. Moving to next commit.");
                 }
             } else {
