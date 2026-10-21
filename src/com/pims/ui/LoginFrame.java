@@ -60,7 +60,7 @@ public class LoginFrame extends JFrame {
                 if ("Admin".equalsIgnoreCase(role)) {
                     new AdminDashboard(userId, fullName).setVisible(true);
                 } else {  
-                    JOptionPane.showMessageDialog(this, "Cashier Dashboard placeholder. Moving to next commit.");
+                    new CashierDashboard(userId, fullName).setVisible(true);
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid credentials. Try again.", "Login Failed", JOptionPane.ERROR_MESSAGE);
