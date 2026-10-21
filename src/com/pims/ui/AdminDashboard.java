@@ -25,6 +25,7 @@ public class AdminDashboard extends JFrame {
         tabbedPane.addTab("Manage Suppliers", createSuppliersPanel());
         tabbedPane.addTab("Manage Users", createUsersPanel());
         tabbedPane.addTab("Sales Reports", createSalesReportPanel());
+        tabbedPane.addTab("Inventory Alerts & Expiry", createAlertsPanel());
 
         add(tabbedPane);
     }
@@ -150,6 +151,52 @@ public class AdminDashboard extends JFrame {
 
         panel.add(topBar, BorderLayout.NORTH);
         panel.add(new JScrollPane(table), BorderLayout.CENTER);
+        return panel;
+    }
+
+    protected JPanel createAlertsPanel() {
+        JPanel panel = new JPanel(new GridLayout(1, 2, 10, 10));
+
+        
+        JPanel lowStockPanel = new JPanel(new BorderLayout());
+        lowStockPanel.setBorder(BorderFactory.createTitledBorder("Low Stock Warnings"));
+        DefaultTableModel lowModel = new DefaultTableModel(new String[]{"Medicine", "Stock", "Reorder Level"}, 0);
+        JTable lowTable = new JTable(lowModel);
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT name, quantity_in_stock, reorder_level FROM medicines WHERE quantity_in_stock <= reorder_level")) {
+            while (rs.next()) {
+                lowModel.addRow(new Object[]{
+                    rs.getString("name"), rs.getInt("quantity_in_stock"), rs.getInt("reorder_level")
+                });
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        lowStockPanel.add(new JScrollPane(lowTable), BorderLayout.CENTER);
+
+        
+        JPanel expiryPanel = new JPanel(new BorderLayout());
+        expiryPanel.setBorder(BorderFactory.createTitledBorder("30-Day Expiry Risk"));
+        DefaultTableModel expModel = new DefaultTableModel(new String[]{"Medicine", "Expiry Date", "Stock"}, 0);
+        JTable expTable = new JTable(expModel);
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT name, expiry_date, quantity_in_stock FROM medicines WHERE expiry_date <= DATE_ADD(CURDATE(), INTERVAL 1 MONTH)")) {
+            while (rs.next()) {
+                expModel.addRow(new Object[]{
+                    rs.getString("name"), rs.getDate("expiry_date"), rs.getInt("quantity_in_stock")
+                });
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        expiryPanel.add(new JScrollPane(expTable), BorderLayout.CENTER);
+
+        panel.add(lowStockPanel);
+        panel.add(expiryPanel);
         return panel;
     }
 }
