@@ -21,10 +21,47 @@ public class AdminDashboard extends JFrame {
         setLocationRelativeTo(null);
 
         tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("Manage Medicines", createMedicinesPanel());
         tabbedPane.addTab("Manage Suppliers", createSuppliersPanel());
         tabbedPane.addTab("Manage Users", createUsersPanel());
 
         add(tabbedPane);
+    }
+
+    protected JPanel createMedicinesPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        DefaultTableModel model = new DefaultTableModel(
+            new String[]{"ID", "Name", "Company", "Type", "Price", "Stock", "Reorder Level", "Expiry Date", "Supplier ID"}, 0);
+        JTable table = new JTable(model);
+
+        Runnable loadMedicines = () -> {
+            model.setRowCount(0);
+            try (Connection conn = DatabaseConnection.getConnection();
+                 Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery("SELECT * FROM medicines")) {
+                while (rs.next()) {
+                    model.addRow(new Object[]{
+                        rs.getInt("medicine_id"), rs.getString("name"), rs.getString("company"),
+                        rs.getString("medicine_type"), rs.getBigDecimal("price"),
+                        rs.getInt("quantity_in_stock"), rs.getInt("reorder_level"),
+                        rs.getDate("expiry_date"), rs.getInt("supplier_id")
+                    });
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        };
+
+        loadMedicines.run();
+
+        JPanel btnPanel = new JPanel();
+        JButton btnRefresh = new JButton("Refresh Stock");
+        btnRefresh.addActionListener(e -> loadMedicines.run());
+        btnPanel.add(btnRefresh);
+
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+        panel.add(btnPanel, BorderLayout.SOUTH);
+        return panel;
     }
 
     protected JPanel createSuppliersPanel() {
