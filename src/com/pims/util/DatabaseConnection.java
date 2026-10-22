@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class DatabaseConnection {
     private static final String URL = "jdbc:mysql://localhost:3306/pims_db?useSSL=false&allowPublicKeyRetrieval=true";
     private static final String USER = "root"; 
-    private static final String PASSWORD = "password"; 
+    private static final String PASSWORD = "Admin#2025"; 
 
     public static Connection getConnection() throws SQLException {
         try {

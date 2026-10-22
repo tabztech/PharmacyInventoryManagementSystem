@@ -26,7 +26,7 @@ public class LoginFrame extends JFrame {
         add(txtPassword);
 
         btnLogin = new JButton("Login");
-        add(new JLabel()); // Placeholder
+        add(new JLabel()); 
         add(btnLogin);
 
         btnLogin.addActionListener(e -> handleLogin());
